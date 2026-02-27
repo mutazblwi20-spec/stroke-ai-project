@@ -1,22 +1,27 @@
 import streamlit as st
 import joblib
-import pandas as pd   # ✅ أضفنا pandas
+import numpy as np
+import pandas as pd
 
-# Page setup
+# ---------------- PAGE SETUP ----------------
 st.set_page_config(
     page_title="Stroke Prediction AI",
     page_icon="🧠",
     layout="centered"
 )
 
-# Title
+# ---------------- TITLE ----------------
 st.title("🧠 AI Stroke Prediction System")
 st.markdown("### Enter patient medical information")
 
-# Load model
-model = joblib.load("stroke_model.pkl")
+# ---------------- LOAD MODEL ----------------
+@st.cache_resource
+def load_model():
+    return joblib.load("stroke_model.pkl")
 
-# UI Layout
+model = load_model()
+
+# ---------------- UI ----------------
 col1, col2 = st.columns(2)
 
 with col1:
@@ -26,29 +31,49 @@ with col1:
 
 with col2:
     avg_glucose_level = st.number_input(
-        "Average Glucose Level", value=100.0
+        "Average Glucose Level",
+        min_value=50.0,
+        max_value=300.0,
+        value=100.0
     )
-    bmi = st.number_input("BMI", value=25.0)
+
+    bmi = st.number_input(
+        "BMI",
+        min_value=10.0,
+        max_value=60.0,
+        value=25.0
+    )
 
 st.divider()
 
-# Prediction button
+# ---------------- PREDICTION ----------------
 if st.button("🔍 Predict Stroke Risk"):
 
-    # ✅ الحل الحقيقي هنا
+    # IMPORTANT:
+    # We recreate ALL features used during training
     data = pd.DataFrame({
+
+        "gender": [1],              # default
         "age": [age],
         "hypertension": [hypertension],
         "heart_disease": [heart_disease],
+        "ever_married": [1],
+        "work_type": [2],
+        "Residence_type": [1],
         "avg_glucose_level": [avg_glucose_level],
-        "bmi": [bmi]
+        "bmi": [bmi],
+        "smoking_status": [1]
+
     })
 
-    prediction = model.predict(data)
+    prediction = model.predict(data)[0]
+    probability = model.predict_proba(data)[0][1]
 
-    if prediction[0] == 1:
-        st.error("⚠️ High Risk of Stroke")
+    st.subheader("Result")
+
+    if prediction == 1:
+        st.error(f"⚠️ High Stroke Risk ({probability*100:.2f}%)")
     else:
-        st.success("✅ Low Risk of Stroke")
+        st.success(f"✅ Low Stroke Risk ({probability*100:.2f}%)")
 
 st.caption("AI Medical Assistant • Machine Learning Project")
