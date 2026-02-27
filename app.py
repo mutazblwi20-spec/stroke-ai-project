@@ -1,6 +1,6 @@
 import streamlit as st
 import joblib
-import numpy as np
+import pandas as pd   # ✅ أضفنا pandas
 
 # Page setup
 st.set_page_config(
@@ -35,11 +35,14 @@ st.divider()
 # Prediction button
 if st.button("🔍 Predict Stroke Risk"):
 
-    data = np.array([[age,
-                      hypertension,
-                      heart_disease,
-                      avg_glucose_level,
-                      bmi]])
+    # ✅ الحل الحقيقي هنا
+    data = pd.DataFrame({
+        "age": [age],
+        "hypertension": [hypertension],
+        "heart_disease": [heart_disease],
+        "avg_glucose_level": [avg_glucose_level],
+        "bmi": [bmi]
+    })
 
     prediction = model.predict(data)
 
